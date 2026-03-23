@@ -16,6 +16,7 @@ Thumbs.db
 !.env*.example
 !.env*.sample
 !.env*.template
+*.local
 
 # Shared logs, caches, and local outputs
 *.log
@@ -23,6 +24,24 @@ Thumbs.db
 *.pid.lock
 .cache/
 coverage/
+
+# Terraform local state
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.auto.tfvars
+*.tfvars
+!*.tfvars.example
+backend.hcl
+!backend.hcl.example
 
 # Frontend (React / React Router / Vite)
 frontend/node_modules/
@@ -63,16 +82,6 @@ backend/public/assets/
 backend/public/packs/
 backend/coverage/
 backend/.byebug_history
-
-# Centralized Docker workspace artifacts
-docker/.env
-docker/.env.*
-!docker/.env.example
-!docker/.env.sample
-!docker/.env.template
-docker/volumes/
-docker/data/
-docker/tmp/
 
 # Keep documentation and committed Docker config in version control
 !README*

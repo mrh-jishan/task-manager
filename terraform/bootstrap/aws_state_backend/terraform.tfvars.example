@@ -1,0 +1,7 @@
+aws_region  = "us-east-1"
+name_prefix = "robiul-hassan-task-manager-terraform-state"
+
+tags = {
+  Project   = "task-manager"
+  ManagedBy = "terraform"
+}

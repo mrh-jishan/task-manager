@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: task-manager-backend-dev
+    working_dir: /rails
+    environment:
+      BUNDLE_PATH: /usr/local/bundle
+      RAILS_ENV: ${RAILS_ENV:-development}
+      RAILS_MAX_THREADS: 5
+    ports:
+      - "${DEV_BACKEND_PORT:-3000}:3000"
+    volumes:
+      - ./backend:/rails
+      - backend_bundle:/usr/local/bundle
+    tty: true
+    stdin_open: true
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: task-manager-frontend-dev
+    working_dir: /app
+    command: sh -lc "npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      CHOKIDAR_USEPOLLING: "true"
+      HOST: 0.0.0.0
+      PORT: 5173
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://backend:3000}
+    depends_on:
+      - backend
+    ports:
+      - "${DEV_FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    tty: true
+    stdin_open: true
+
+volumes:
+  backend_bundle:
+  frontend_node_modules:

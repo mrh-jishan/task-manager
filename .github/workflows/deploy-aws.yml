@@ -1,0 +1,130 @@
+name: Deploy To AWS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/deploy-aws.yml"
+      - "backend/**"
+      - "frontend/**"
+      - "helm/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'push' && 'production' || 'stage' }}
+    concurrency: deploy-${{ github.event_name == 'push' && 'production' || 'stage' }}
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+      BACKEND_ECR_REPOSITORY: ${{ vars.BACKEND_ECR_REPOSITORY }}
+      BACKEND_DB_SECRET_ARN: ${{ vars.BACKEND_DB_SECRET_ARN }}
+      FRONTEND_ECR_REPOSITORY: ${{ vars.FRONTEND_ECR_REPOSITORY }}
+      K8S_NAMESPACE: ${{ vars.K8S_NAMESPACE }}
+      HELM_RELEASE_NAME: ${{ vars.HELM_RELEASE_NAME }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Resolve Deploy Settings
+        id: settings
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            echo "values_file=./helm/task-manager/values.prod.yaml" >> "$GITHUB_OUTPUT"
+          else
+            echo "values_file=./helm/task-manager/values.stage.yaml" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Login To Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build And Push Backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          target: production
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.BACKEND_ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Build And Push Frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          target: production
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.FRONTEND_ECR_REPOSITORY }}:${{ github.sha }}
+
+      - name: Setup Kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: latest
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: latest
+
+      - name: Update Kubeconfig
+        run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
+
+      - name: Create Namespace
+        run: |
+          kubectl create namespace "${K8S_NAMESPACE:-task-manager}" --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Install AWS Secrets Store CSI Provider
+        run: |
+          helm repo add aws-secrets-manager https://aws.github.io/secrets-store-csi-driver-provider-aws
+          helm repo update
+          helm upgrade --install secrets-provider-aws aws-secrets-manager/secrets-store-csi-driver-provider-aws \
+            --namespace kube-system \
+            --wait
+
+      - name: Apply Backend Secret
+        run: |
+          SECRET_NAME="${HELM_RELEASE_NAME:-task-manager}-backend-secret"
+          kubectl create secret generic "${SECRET_NAME}" \
+            --namespace "${K8S_NAMESPACE:-task-manager}" \
+            --from-literal=RAILS_MASTER_KEY="${RAILS_MASTER_KEY}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+        env:
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+
+      - name: Deploy Helm Release
+        run: |
+          SECRET_NAME="${HELM_RELEASE_NAME:-task-manager}-backend-secret"
+          helm upgrade --install "${HELM_RELEASE_NAME:-task-manager}" ./helm/task-manager \
+            --namespace "${K8S_NAMESPACE:-task-manager}" \
+            --create-namespace \
+            -f ./helm/task-manager/values.yaml \
+            -f "${VALUES_FILE}" \
+            -f ./helm/task-manager/values.aws.yaml \
+            --set backend.secret.existingSecret="${SECRET_NAME}" \
+            --set backend.secretsStore.region="${AWS_REGION}" \
+            --set backend.secretsStore.secretArn="${BACKEND_DB_SECRET_ARN}" \
+            --set frontend.image.repository="${REGISTRY}/${FRONTEND_ECR_REPOSITORY}" \
+            --set frontend.image.tag="${GITHUB_SHA}" \
+            --set backend.image.repository="${REGISTRY}/${BACKEND_ECR_REPOSITORY}" \
+            --set backend.image.tag="${GITHUB_SHA}" \
+            --wait \
+            --atomic
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          VALUES_FILE: ${{ steps.settings.outputs.values_file }}

@@ -1,0 +1,23 @@
+aws_region           = "us-east-1"
+name_prefix          = "task-manager-prod"
+github_repository    = "robiul-hassan/task-manager"
+github_environments  = ["production"]
+kubernetes_version   = "1.30"
+
+vpc_cidr             = "10.0.0.0/16"
+public_subnet_cidrs  = ["10.0.0.0/24", "10.0.1.0/24"]
+private_subnet_cidrs = ["10.0.10.0/24", "10.0.11.0/24"]
+
+cluster_endpoint_public_access       = true
+cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
+
+node_instance_types = ["t3.medium"]
+node_desired_size   = 2
+node_min_size       = 2
+node_max_size       = 4
+
+database_instance_class          = "db.t4g.micro"
+database_allocated_storage       = 20
+database_max_allocated_storage   = 100
+database_backup_retention_period = 7
+database_multi_az                = false

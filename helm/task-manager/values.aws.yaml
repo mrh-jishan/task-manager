@@ -1,0 +1,13 @@
+frontend:
+  service:
+    type: LoadBalancer
+  ingress:
+    enabled: false
+
+backend:
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: true
+  ingress:
+    enabled: false

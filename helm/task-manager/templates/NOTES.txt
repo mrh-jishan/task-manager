@@ -1,0 +1,13 @@
+1. Set image repositories and tags before deploying:
+   helm upgrade --install {{ .Release.Name }} {{ .Chart.Name }} \
+     --set frontend.image.repository=... \
+     --set frontend.image.tag=... \
+     --set backend.image.repository=... \
+     --set backend.image.tag=...
+
+2. Provide Rails credentials with either:
+   --set backend.secret.create=true --set backend.secret.railsMasterKey=...
+   or
+   --set backend.secret.existingSecret=your-existing-secret
+
+3. If you keep SQLite in production, run only one backend replica and keep persistence enabled.

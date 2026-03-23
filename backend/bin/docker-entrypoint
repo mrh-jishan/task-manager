@@ -1,5 +1,32 @@
 #!/bin/bash -e
 
+load_mounted_secrets() {
+  local mount_path="${BACKEND_SECRETS_MOUNT_PATH:-/mnt/secrets-store}"
+  local secret_keys=(
+    "BACKEND_DATABASE_HOST"
+    "BACKEND_DATABASE_PORT"
+    "BACKEND_DATABASE_NAME"
+    "BACKEND_DATABASE_USERNAME"
+    "BACKEND_DATABASE_PASSWORD"
+    "BACKEND_CACHE_DATABASE_NAME"
+    "BACKEND_QUEUE_DATABASE_NAME"
+    "BACKEND_CABLE_DATABASE_NAME"
+    "RAILS_MASTER_KEY"
+  )
+
+  if [ ! -d "$mount_path" ]; then
+    return
+  fi
+
+  for key in "${secret_keys[@]}"; do
+    if [ -f "${mount_path}/${key}" ]; then
+      export "${key}=$(tr -d '\r' < "${mount_path}/${key}")"
+    fi
+  done
+}
+
+load_mounted_secrets
+
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
