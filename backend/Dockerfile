@@ -20,15 +20,11 @@ RUN apt-get update -qq && \
     ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-# Set production environment variables and enable jemalloc for reduced memory usage and latency.
-ENV RAILS_ENV="production" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_PATH="/usr/local/bundle" \
-    BUNDLE_WITHOUT="development" \
+ENV BUNDLE_PATH="/usr/local/bundle" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
-# Throw-away build stage to reduce size of final image
-FROM base AS build
+# Shared gem install stage
+FROM base AS gems
 
 # Install packages needed to build gems
 RUN apt-get update -qq && \
@@ -40,6 +36,30 @@ COPY vendor/ ./vendor/
 COPY Gemfile Gemfile.lock ./
 
 RUN bundle install && \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
+    bundle exec bootsnap precompile -j 1 --gemfile
+
+FROM gems AS development
+
+ENV RAILS_ENV="development" \
+    BUNDLE_DEPLOYMENT="0" \
+    BUNDLE_WITHOUT=""
+
+COPY . .
+
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+EXPOSE 3000
+CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+
+# Throw-away build stage to reduce size of final image
+FROM gems AS build
+
+ENV RAILS_ENV="production" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_WITHOUT="development"
+
+RUN bundle config set without "development" && \
+    bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
     # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
     bundle exec bootsnap precompile -j 1 --gemfile
@@ -55,7 +75,11 @@ RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
 
 # Final stage for app image
-FROM base
+FROM base AS production
+
+ENV RAILS_ENV="production" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_WITHOUT="development"
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \

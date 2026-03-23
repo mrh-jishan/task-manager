@@ -4,7 +4,7 @@ global:
 frontend:
   replicaCount: 1
   image:
-    repository: ghcr.io/robiul-hassan/task-manager-frontend
+    repository: ghcr.io/mrh-jishan/task-manager-frontend
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -36,7 +36,7 @@ frontend:
 backend:
   replicaCount: 1
   image:
-    repository: ghcr.io/robiul-hassan/task-manager-backend
+    repository: ghcr.io/mrh-jishan/task-manager-backend
     tag: latest
     pullPolicy: IfNotPresent
   service:

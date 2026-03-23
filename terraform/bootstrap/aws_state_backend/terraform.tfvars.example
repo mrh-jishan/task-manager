@@ -1,5 +1,5 @@
 aws_region  = "us-east-1"
-name_prefix = "robiul-hassan-task-manager-terraform-state"
+name_prefix = "mrh-jishan-task-manager-terraform-state"
 
 tags = {
   Project   = "task-manager"
