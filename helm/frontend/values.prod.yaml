@@ -1,5 +1,8 @@
 replicaCount: 2
 
+env:
+  API_BASE_URL: http://k8s-taskmanagerprod-01bf939e5c-259172656.us-east-1.elb.amazonaws.com/api
+
 resources:
   requests:
     cpu: 250m
