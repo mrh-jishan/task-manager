@@ -64,6 +64,7 @@ docker compose --env-file .env -f docker-compose.prod.yml up --build -d
 Minimum GitHub environment variables for both `stage` and `production`:
 
 - `AWS_REGION`
+- `TF_STATE_BUCKET`
 - `EKS_CLUSTER_NAME`
 - `FRONTEND_ECR_REPOSITORY`
 - `BACKEND_ECR_REPOSITORY`
@@ -85,8 +86,14 @@ cd terraform/bootstrap/aws_state_backend
 cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform apply
+```
 
-cd ../../environments/aws-stage
+Take the bootstrap output `bucket_name` and set it as `TF_STATE_BUCKET` in both GitHub environments.
+
+Then apply an environment:
+
+```bash
+cd terraform/environments/aws-stage
 cp backend.hcl.example backend.hcl
 cp terraform.tfvars.example terraform.tfvars
 terraform init -backend-config=backend.hcl

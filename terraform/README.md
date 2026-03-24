@@ -9,6 +9,8 @@ terraform init
 terraform apply
 ```
 
+Use the bootstrap output `bucket_name` as the GitHub environment variable `TF_STATE_BUCKET` for both `stage` and `production`.
+
 Apply an environment:
 
 ```bash
