@@ -1,4 +1,4 @@
-import { redirect, useActionData, useLoaderData, useNavigation } from "react-router";
+import { redirect, useActionData, useLoaderData, useLocation, useNavigation } from "react-router";
 
 import { TaskHero } from "../components/task-manager/TaskHero";
 import { TaskResultsPanel } from "../components/task-manager/TaskResultsPanel";
@@ -151,6 +151,7 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const { tasks, pagination, filters } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>() as TaskActionData | undefined;
+  const location = useLocation();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
   const hasActiveFilters = Boolean(filters.q || filters.status);
@@ -182,6 +183,7 @@ export default function Home() {
           <TaskSidebar
             actionData={actionData}
             emptyTaskForm={EMPTY_TASK_FORM}
+            formKey={location.key}
             isSubmitting={isSubmitting}
           />
 

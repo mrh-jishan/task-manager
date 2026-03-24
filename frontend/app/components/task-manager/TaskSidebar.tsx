@@ -13,10 +13,11 @@ import type { TaskActionData } from "./types";
 type TaskSidebarProps = {
   actionData?: TaskActionData;
   emptyTaskForm: TaskMutationInput;
+  formKey: string;
   isSubmitting: boolean;
 };
 
-export function TaskSidebar({ actionData, emptyTaskForm, isSubmitting }: TaskSidebarProps) {
+export function TaskSidebar({ actionData, emptyTaskForm, formKey, isSubmitting }: TaskSidebarProps) {
   return (
     <div className="space-y-6 xl:sticky xl:top-6 xl:self-start">
       <section className="rounded-[1.8rem] border border-white/70 bg-white/82 p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] backdrop-blur">
@@ -33,7 +34,7 @@ export function TaskSidebar({ actionData, emptyTaskForm, isSubmitting }: TaskSid
           </div>
         ) : null}
 
-        <Form method="post" className="grid gap-4">
+        <Form key={formKey} method="post" className="grid gap-4">
           <input type="hidden" name="intent" value="create" />
 
           <label className="grid gap-2">
