@@ -21,31 +21,61 @@ permissions:
 jobs:
   rubocop:
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/backend/Gemfile
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 4.0.0
+          bundler-cache: true
 
       - name: Run RuboCop
         run: |
-          docker compose --env-file .env.example -f docker-compose.dev.yml run --rm --no-deps backend bundle exec rubocop
+          bundle exec rubocop
+        working-directory: backend
 
   test:
     runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/backend/Gemfile
+      RAILS_ENV: test
+      BACKEND_DATABASE_HOST: 127.0.0.1
+      BACKEND_DATABASE_PORT: 5432
+      BACKEND_DATABASE_NAME: task_manager_test
+      BACKEND_TEST_DATABASE_NAME: task_manager_test
+      BACKEND_DATABASE_USERNAME: task_manager
+      BACKEND_DATABASE_PASSWORD: task_manager
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: task_manager_test
+          POSTGRES_USER: task_manager
+          POSTGRES_PASSWORD: task_manager
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U task_manager -d task_manager_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Start Postgres
-        run: |
-          docker compose --env-file .env.example -f docker-compose.dev.yml up -d postgres
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 4.0.0
+          bundler-cache: true
 
       - name: Run Rails Tests
         run: |
-          docker compose --env-file .env.example -f docker-compose.dev.yml run --rm --no-deps -e RAILS_ENV=test backend bundle exec rails db:prepare test
-
-      - name: Stop Docker Services
-        if: always()
-        run: |
-          docker compose --env-file .env.example -f docker-compose.dev.yml down -v
+          bundle exec rails db:prepare test
+        working-directory: backend

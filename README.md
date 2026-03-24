@@ -25,6 +25,13 @@ docker compose --env-file .env -f docker-compose.dev.yml up --build
 - backend health: `http://localhost:3000/up`
 - postgres: `localhost:5432`
 
+Run backend tests:
+
+```bash
+backend/bin/test
+backend/bin/test test/integration/tasks_flow_test.rb
+```
+
 Local Docker uses:
 
 - `postgres` for the database
@@ -55,7 +62,7 @@ docker compose --env-file .env -f docker-compose.prod.yml up --build -d
 
 ## Release
 
-- `backend-ci.yml` runs RuboCop and Rails tests against Dockerized Postgres for backend changes
+- `backend-ci.yml` runs RuboCop on Ruby 4.0.0 and Rails tests against a Postgres service container for backend changes
 - `terraform-aws.yml` applies infra
 - `deploy-backend.yml` deploys the backend Helm release only
 - `deploy-frontend.yml` deploys the frontend Helm release only
