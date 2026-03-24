@@ -6,7 +6,7 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
   end
 
   test "creates shows updates and deletes a task" do
-    post tasks_path, params: {
+    post "/api/tasks", params: {
       task: {
         title: "Ship backend API",
         description: "Implement CRUD and search",
@@ -20,11 +20,11 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
     task_id = response.parsed_body["id"]
     assert_equal "Ship backend API", response.parsed_body["title"]
 
-    get task_path(task_id), as: :json
+    get "/api/tasks/#{task_id}", as: :json
     assert_response :success
     assert_equal task_id, response.parsed_body["id"]
 
-    patch task_path(task_id), params: {
+    patch "/api/tasks/#{task_id}", params: {
       task: {
         status: "in_progress",
         priority: "urgent"
@@ -35,7 +35,7 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
     assert_equal "in_progress", response.parsed_body["status"]
     assert_equal "urgent", response.parsed_body["priority"]
 
-    delete task_path(task_id), as: :json
+    delete "/api/tasks/#{task_id}", as: :json
     assert_response :no_content
     assert_equal 0, Task.count
   end
@@ -72,14 +72,14 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
       priority: "medium"
     )
 
-    get tasks_path, params: { q: "invoice checkout" }
+    get "/api/tasks", params: { q: "invoice checkout" }
 
     assert_response :success
     assert_equal 1, response.parsed_body["data"].length
     assert_equal "Investigate payment failure", response.parsed_body["data"].first["title"]
     assert_equal 1, response.parsed_body["pagination"]["total_count"]
 
-    get tasks_path, params: { q: "chekout" }
+    get "/api/tasks", params: { q: "chekout" }
 
     assert_response :success
     assert_equal "Investigate payment failure", response.parsed_body["data"].first["title"]
@@ -89,7 +89,7 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
     Task.create!(title: "Todo item", status: "open", priority: "low")
     Task.create!(title: "Done item", status: "completed", priority: "medium")
 
-    get tasks_path, params: { status: "completed" }
+    get "/api/tasks", params: { status: "completed" }
 
     assert_response :success
     assert_equal 1, response.parsed_body["data"].length
@@ -107,7 +107,7 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
       )
     end
 
-    get tasks_path, params: { page: 2, per_page: 2 }
+    get "/api/tasks", params: { page: 2, per_page: 2 }
 
     assert_response :success
     assert_equal 1, response.parsed_body["data"].length
@@ -120,7 +120,7 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
   test "caps per_page and normalizes invalid page values" do
     Task.create!(title: "Task", status: "open", priority: "low")
 
-    get tasks_path, params: { page: 0, per_page: 999 }
+    get "/api/tasks", params: { page: 0, per_page: 999 }
 
     assert_response :success
     assert_equal 1, response.parsed_body["pagination"]["page"]

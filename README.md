@@ -22,14 +22,15 @@ docker compose --env-file .env -f docker-compose.dev.yml up --build
 
 - frontend: `http://localhost:5173`
 - backend: `http://localhost:3000`
+- backend API: `http://localhost:3000/api/tasks`
 - backend health: `http://localhost:3000/up`
 - postgres: `localhost:5432`
 
 Frontend integration by environment:
 
-- local non-Docker: `frontend/.env` should point `API_BASE_URL` to `http://localhost:3000`
-- local Docker dev: root `.env` uses `FRONTEND_API_BASE_URL=http://backend:3000`
-- local Docker prod: root `.env` uses `PROD_FRONTEND_API_BASE_URL=http://backend`
+- local non-Docker: `frontend/.env` should point `API_BASE_URL` to `http://localhost:3000/api`
+- local Docker dev: root `.env` uses `FRONTEND_API_BASE_URL=http://backend:3000/api`
+- local Docker prod: root `.env` uses `PROD_FRONTEND_API_BASE_URL=http://backend/api`
 - stage/prod Kubernetes: no frontend API host env is required; the frontend uses same-origin `/api` and the ALB routes that path to the backend
 
 Run backend tests:
@@ -68,7 +69,7 @@ Why:
 
 ## Tasks API
 
-`GET /tasks` supports `q`, `status`, `page`, and `per_page`. The list response returns `{ data: [...], pagination: { page, per_page, total_count, total_pages } }`.
+`GET /api/tasks` supports `q`, `status`, `page`, and `per_page`. The list response returns `{ data: [...], pagination: { page, per_page, total_count, total_pages } }`.
 
 The React Router v7 frontend uses server-side loaders and actions to talk to the Rails API, so the browser stays on the frontend app origin while CRUD and search still flow through the backend.
 

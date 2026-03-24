@@ -21,6 +21,6 @@ describe("resolveApiBaseUrl", () => {
   });
 
   it("falls back to localhost when no env or request exists", () => {
-    expect(resolveApiBaseUrl()).toBe("http://localhost:3000");
+    expect(resolveApiBaseUrl()).toBe("http://localhost:3000/api");
   });
 });

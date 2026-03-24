@@ -40,7 +40,7 @@ export function resolveApiBaseUrl(request?: Request) {
     return new URL("/api", request.url).toString().replace(/\/+$/, "");
   }
 
-  return "http://localhost:3000";
+  return "http://localhost:3000/api";
 }
 
 function buildApiUrl(pathname: string, request?: Request, searchParams?: URLSearchParams) {
