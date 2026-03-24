@@ -90,6 +90,34 @@ jobs:
       - name: Update Kubeconfig
         run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
 
+      - name: Recover Stuck Helm Release
+        env:
+          RELEASE_NAME: ${{ steps.settings.outputs.release_name }}
+        run: |
+          if ! helm status "${RELEASE_NAME}" --namespace "${K8S_NAMESPACE}" -o json >/tmp/helm-status.json 2>/dev/null; then
+            echo "No existing Helm release to recover."
+            exit 0
+          fi
+
+          STATUS="$(jq -r '.info.status // empty' /tmp/helm-status.json)"
+
+          case "${STATUS}" in
+            pending-install|pending-upgrade|pending-rollback)
+              DEPLOYED_REVISION="$(helm history "${RELEASE_NAME}" --namespace "${K8S_NAMESPACE}" -o json | jq -r '[.[] | select(.status == "deployed")][-1].revision // empty')"
+
+              if [ -n "${DEPLOYED_REVISION}" ] && [ "${DEPLOYED_REVISION}" != "null" ]; then
+                echo "Recovering ${RELEASE_NAME} from ${STATUS} by rolling back to revision ${DEPLOYED_REVISION}."
+                helm rollback "${RELEASE_NAME}" "${DEPLOYED_REVISION}" --namespace "${K8S_NAMESPACE}" --wait
+              else
+                echo "No deployed revision found for ${RELEASE_NAME}; uninstalling stuck release."
+                helm uninstall "${RELEASE_NAME}" --namespace "${K8S_NAMESPACE}"
+              fi
+              ;;
+            *)
+              echo "Helm release ${RELEASE_NAME} status is ${STATUS}; no recovery needed."
+              ;;
+          esac
+
       - name: Create Namespace
         run: |
           kubectl create namespace "${K8S_NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
