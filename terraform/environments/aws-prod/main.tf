@@ -19,6 +19,7 @@ module "platform" {
   node_max_size                        = var.node_max_size
   github_repository                    = var.github_repository
   github_environments                  = var.github_environments
+  github_actions_oidc_provider_arn     = var.github_actions_oidc_provider_arn
   tags                                 = var.tags
 }
 

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: task-manager-frontend
+description: Helm chart for the Task Manager frontend
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

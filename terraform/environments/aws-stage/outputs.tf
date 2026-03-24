@@ -34,6 +34,10 @@ output "github_actions_role_arn" {
   value = module.platform.github_actions_role_arn
 }
 
+output "github_actions_oidc_provider_arn" {
+  value = module.platform.github_actions_oidc_provider_arn
+}
+
 output "configure_kubectl_command" {
   value = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.platform.cluster_name}"
 }

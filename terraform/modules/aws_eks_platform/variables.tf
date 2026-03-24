@@ -110,6 +110,12 @@ variable "github_environments" {
   default     = ["production"]
 }
 
+variable "github_actions_oidc_provider_arn" {
+  type        = string
+  description = "Optional existing GitHub Actions OIDC provider ARN to reuse instead of creating one."
+  default     = null
+}
+
 variable "tags" {
   type        = map(string)
   description = "AWS tags applied to created resources."

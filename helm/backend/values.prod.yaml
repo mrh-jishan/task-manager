@@ -1,0 +1,19 @@
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+serviceAccount:
+  name: task-manager-backend
+
+secretsStore:
+  enabled: true
+
+persistence:
+  enabled: true
+  size: 20Gi

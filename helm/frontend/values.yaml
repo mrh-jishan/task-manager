@@ -1,0 +1,38 @@
+imagePullSecrets: []
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/mrh-jishan/task-manager-frontend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+  annotations: {}
+
+env: {}
+podAnnotations: {}
+podLabels: {}
+resources: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: frontend.task-manager.local
+  path: /
+  pathType: Prefix
+  tls: []
+
+livenessProbe:
+  path: /
+  initialDelaySeconds: 15
+  periodSeconds: 20
+
+readinessProbe:
+  path: /
+  initialDelaySeconds: 5
+  periodSeconds: 10

@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "task-manager-backend.fullname" . }}
+  labels:
+    {{- include "task-manager-backend.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "task-manager-backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "task-manager-backend.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name }}
+      serviceAccountName: {{ include "task-manager-backend.serviceAccountName" . }}
+      {{- end }}
+      {{- $secretEnabled := or .Values.secret.existingSecret (and .Values.secret.create .Values.secret.railsMasterKey) }}
+      containers:
+        - name: backend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          {{- if or .Values.env .Values.secretsStore.enabled $secretEnabled }}
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.secretsStore.enabled }}
+            - name: BACKEND_SECRETS_MOUNT_PATH
+              value: {{ .Values.secretsStore.mountPath | quote }}
+            {{- end }}
+            {{- if $secretEnabled }}
+            {{- range $key, $value := .Values.secretEnv }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "task-manager-backend.secretName" . }}
+                  key: {{ $value }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.persistence.enabled }}
+          volumeMounts:
+            {{- if .Values.secretsStore.enabled }}
+            - name: backend-secrets-store
+              mountPath: {{ .Values.secretsStore.mountPath }}
+              readOnly: true
+            {{- end }}
+            - name: backend-storage
+              mountPath: /rails/storage
+          {{- else if .Values.secretsStore.enabled }}
+          volumeMounts:
+            - name: backend-secrets-store
+              mountPath: {{ .Values.secretsStore.mountPath }}
+              readOnly: true
+          {{- end }}
+      {{- if or .Values.persistence.enabled .Values.secretsStore.enabled }}
+      volumes:
+        {{- if .Values.secretsStore.enabled }}
+        - name: backend-secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "task-manager-backend.secretProviderClassName" . }}
+        {{- end }}
+        {{- if .Values.persistence.enabled }}
+        - name: backend-storage
+          persistentVolumeClaim:
+            claimName: {{ include "task-manager-backend.fullname" . }}-storage
+        {{- end }}
+      {{- end }}

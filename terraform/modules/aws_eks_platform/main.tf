@@ -9,11 +9,12 @@ data "tls_certificate" "github_actions" {
 }
 
 locals {
-  cluster_name       = "${var.name_prefix}-eks"
-  frontend_repo_name = "${var.name_prefix}-frontend"
-  backend_repo_name  = "${var.name_prefix}-backend"
-  az_names           = slice(data.aws_availability_zones.available.names, 0, var.az_count)
-  common_tags        = merge(var.tags, { Project = var.name_prefix })
+  cluster_name                     = "${var.name_prefix}-eks"
+  frontend_repo_name               = "${var.name_prefix}-frontend"
+  backend_repo_name                = "${var.name_prefix}-backend"
+  az_names                         = slice(data.aws_availability_zones.available.names, 0, var.az_count)
+  common_tags                      = merge(var.tags, { Project = var.name_prefix })
+  github_actions_oidc_provider_arn = coalesce(var.github_actions_oidc_provider_arn, one(aws_iam_openid_connect_provider.github_actions[*].arn))
 }
 
 resource "aws_vpc" "this" {
@@ -342,6 +343,8 @@ resource "aws_ecr_repository" "backend" {
 }
 
 resource "aws_iam_openid_connect_provider" "github_actions" {
+  count = var.github_actions_oidc_provider_arn == null ? 1 : 0
+
   url             = "https://token.actions.githubusercontent.com"
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = [data.tls_certificate.github_actions.certificates[0].sha1_fingerprint]
@@ -358,7 +361,7 @@ resource "aws_iam_role" "github_actions" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.github_actions.arn
+          Federated = local.github_actions_oidc_provider_arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {

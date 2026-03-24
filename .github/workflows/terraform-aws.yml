@@ -1,0 +1,105 @@
+name: Apply Terraform
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-aws.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Infrastructure environment"
+        required: true
+        default: stage
+        type: choice
+        options:
+          - stage
+          - production
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'push' && 'production' || inputs.environment || 'stage' }}
+    concurrency: terraform-${{ github.event_name == 'push' && 'production' || inputs.environment || 'stage' }}
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      DEPLOY_ENV: ${{ github.event_name == 'push' && 'production' || inputs.environment || 'stage' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_TERRAFORM_ROLE_TO_ASSUME }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Resolve Terraform Settings
+        id: settings
+        run: |
+          ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          OWNER="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          STATE_BUCKET="${OWNER}-task-manager-tfstate-${ACCOUNT_ID}"
+          OIDC_PROVIDER_ARN="arn:aws:iam::${ACCOUNT_ID}:oidc-provider/token.actions.githubusercontent.com"
+
+          if [ "${DEPLOY_ENV}" = "production" ]; then
+            ENV_DIR="aws-prod"
+          else
+            ENV_DIR="aws-stage"
+          fi
+
+          echo "account_id=${ACCOUNT_ID}" >> "$GITHUB_OUTPUT"
+          echo "state_bucket=${STATE_BUCKET}" >> "$GITHUB_OUTPUT"
+          echo "env_dir=${ENV_DIR}" >> "$GITHUB_OUTPUT"
+          echo "github_oidc_provider_arn=${OIDC_PROVIDER_ARN}" >> "$GITHUB_OUTPUT"
+
+      - name: Bootstrap Terraform State Bucket
+        run: |
+          terraform -chdir=terraform/bootstrap/aws_state_backend init
+          terraform -chdir=terraform/bootstrap/aws_state_backend apply -auto-approve \
+            -var="aws_region=${AWS_REGION}" \
+            -var="bucket_name=${STATE_BUCKET}" \
+            -var="name_prefix=${GITHUB_REPOSITORY_OWNER}-task-manager-terraform-state"
+        env:
+          STATE_BUCKET: ${{ steps.settings.outputs.state_bucket }}
+
+      - name: Terraform Init
+        run: |
+          terraform -chdir="terraform/environments/${ENV_DIR}" init \
+            -backend-config="bucket=${STATE_BUCKET}" \
+            -backend-config="key=task-manager/${ENV_DIR}/terraform.tfstate" \
+            -backend-config="region=${AWS_REGION}" \
+            -backend-config="encrypt=true" \
+            -backend-config="use_lockfile=true"
+        env:
+          ENV_DIR: ${{ steps.settings.outputs.env_dir }}
+          STATE_BUCKET: ${{ steps.settings.outputs.state_bucket }}
+
+      - name: Terraform Apply
+        run: |
+          terraform -chdir="terraform/environments/${ENV_DIR}" apply -auto-approve \
+            -var="aws_region=${AWS_REGION}" \
+            -var="github_repository=${GITHUB_REPOSITORY}" \
+            -var="github_actions_oidc_provider_arn=${GITHUB_OIDC_PROVIDER_ARN}"
+        env:
+          ENV_DIR: ${{ steps.settings.outputs.env_dir }}
+          GITHUB_OIDC_PROVIDER_ARN: ${{ steps.settings.outputs.github_oidc_provider_arn }}
+
+      - name: Print Required GitHub Values
+        run: |
+          echo "database_secret_arn=$(terraform -chdir="terraform/environments/${ENV_DIR}" output -raw database_secret_arn)" >> "$GITHUB_STEP_SUMMARY"
+          echo "github_actions_role_arn=$(terraform -chdir="terraform/environments/${ENV_DIR}" output -raw github_actions_role_arn)" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          ENV_DIR: ${{ steps.settings.outputs.env_dir }}

@@ -49,3 +49,7 @@ output "github_actions_role_arn" {
 output "github_actions_role_name" {
   value = aws_iam_role.github_actions.name
 }
+
+output "github_actions_oidc_provider_arn" {
+  value = local.github_actions_oidc_provider_arn
+}

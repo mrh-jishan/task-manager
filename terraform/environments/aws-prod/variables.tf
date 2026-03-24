@@ -32,6 +32,7 @@ variable "private_subnet_cidrs" {
 variable "kubernetes_version" {
   type        = string
   description = "EKS Kubernetes version, for example 1.30."
+  default     = "1.30"
 }
 
 variable "cluster_endpoint_public_access" {
@@ -167,6 +168,11 @@ variable "github_repository" {
 variable "github_environments" {
   type    = list(string)
   default = ["production"]
+}
+
+variable "github_actions_oidc_provider_arn" {
+  type    = string
+  default = null
 }
 
 variable "tags" {

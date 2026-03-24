@@ -39,11 +39,15 @@ docker compose --env-file .env -f docker-compose.prod.yml up --build -d
 
 ## Release
 
-- `main` deploys to GitHub environment `production`
-- manual workflow dispatch deploys to GitHub environment `stage`
+- `terraform-aws.yml` applies infra
+- `deploy-backend.yml` deploys the backend Helm release only
+- `deploy-frontend.yml` deploys the frontend Helm release only
+- `main` pushes deploy to `production`
+- manual workflow dispatch can deploy `stage` or `production`
 - Terraform uses S3 remote state with native S3 lockfiles
 - AWS deployment uses EKS, ECR, RDS Postgres, Secrets Manager, and Helm
 - the backend reads DB credentials through EKS Pod Identity
+- backend and frontend use separate Helm charts and separate Helm releases
 
 Minimum GitHub environment variables for both `stage` and `production`:
 
@@ -51,14 +55,16 @@ Minimum GitHub environment variables for both `stage` and `production`:
 - `EKS_CLUSTER_NAME`
 - `FRONTEND_ECR_REPOSITORY`
 - `BACKEND_ECR_REPOSITORY`
-- `BACKEND_DB_SECRET_ARN`
 - `K8S_NAMESPACE`
-- `HELM_RELEASE_NAME`
 
-Minimum GitHub environment secrets:
+Minimum GitHub environment secrets for app deploys:
 
 - `AWS_ROLE_TO_ASSUME`
 - `RAILS_MASTER_KEY`
+
+Minimum GitHub environment secret for Terraform:
+
+- `AWS_TERRAFORM_ROLE_TO_ASSUME`
 
 Apply infra:
 
@@ -88,4 +94,4 @@ kubectl get svc -n stage
 kubectl get svc -n prod
 ```
 
-Use the external hostname of the frontend service.
+Use the external hostname of the frontend service release.

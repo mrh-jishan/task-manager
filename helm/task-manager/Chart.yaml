@@ -1,6 +1,0 @@
-apiVersion: v2
-name: task-manager
-description: Helm chart for the Task Manager frontend and backend services
-type: application
-version: 0.1.0
-appVersion: "0.1.0"
