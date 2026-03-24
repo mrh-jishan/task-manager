@@ -104,10 +104,10 @@ jobs:
             --set image.repository="${REGISTRY}/${FRONTEND_ECR_REPOSITORY}" \
             --set image.tag="${GITHUB_SHA}" \
             --wait \
-            --atomic
+            --rollback-on-failure
 
-      - name: Print Public App URL
+      - name: Print Ingress And Service
         run: |
-          kubectl get svc "${RELEASE_NAME}" --namespace "${K8S_NAMESPACE}" -o wide
+          kubectl get ingress,svc --namespace "${K8S_NAMESPACE}" -o wide
         env:
           RELEASE_NAME: ${{ steps.settings.outputs.release_name }}

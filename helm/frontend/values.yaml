@@ -22,7 +22,7 @@ ingress:
   enabled: false
   className: ""
   annotations: {}
-  host: frontend.task-manager.local
+  host: ""
   path: /
   pathType: Prefix
   tls: []

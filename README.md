@@ -72,6 +72,8 @@ docker compose --env-file .env -f docker-compose.prod.yml up --build -d
 - AWS deployment uses EKS, ECR, RDS Postgres, Secrets Manager, and Helm
 - the backend reads DB credentials through EKS Pod Identity
 - backend and frontend use separate Helm charts and separate Helm releases
+- frontend and backend are configured for AWS ALB ingress, sharing one public ALB per environment
+- public paths are frontend at `/` and backend API at `/api`
 
 Minimum GitHub environment variables for both `stage` and `production`:
 
@@ -121,11 +123,13 @@ No domain is required.
 After deploy, get the public app URL with:
 
 ```bash
-kubectl get svc -n stage
-kubectl get svc -n prod
+kubectl get ingress -n stage
+kubectl get ingress -n prod
 ```
 
-Use the external hostname of the frontend service release.
+Use the ALB hostname from the frontend or backend ingress. The frontend is served at `/` and the backend API is served at `/api`.
+
+The ingress resources require the AWS Load Balancer Controller in the cluster. If no `IngressClass` named `alb` exists yet, the ingress objects will be created but no public ALB will appear until that controller is installed.
 
 ## Local kubectl Access
 
