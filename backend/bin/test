@@ -19,4 +19,9 @@ done
 
 docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d postgres
 docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" run --rm --no-deps -e RAILS_ENV=test backend bundle exec rails db:prepare
-docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" run --rm --no-deps -e RAILS_ENV=test backend bundle exec rails test "${TEST_ARGS[@]}"
+
+if [ ${#TEST_ARGS[@]} -gt 0 ]; then
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" run --rm --no-deps -e RAILS_ENV=test backend bundle exec rails test "${TEST_ARGS[@]}"
+else
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" run --rm --no-deps -e RAILS_ENV=test backend bundle exec rails test
+fi

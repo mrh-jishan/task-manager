@@ -1,5 +1,8 @@
 replicaCount: 2
 
+env:
+  API_BASE_URL: http://task-manager-backend-prod.prod.svc.cluster.local
+
 resources:
   requests:
     cpu: 250m

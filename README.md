@@ -32,6 +32,14 @@ backend/bin/test
 backend/bin/test test/integration/tasks_flow_test.rb
 ```
 
+Run frontend checks:
+
+```bash
+cd frontend
+npm test
+npm run typecheck
+```
+
 Local Docker uses:
 
 - `postgres` for the database
@@ -53,6 +61,8 @@ Why:
 ## Tasks API
 
 `GET /tasks` supports `q`, `status`, `page`, and `per_page`. The list response returns `{ data: [...], pagination: { page, per_page, total_count, total_pages } }`.
+
+The React Router v7 frontend uses server-side loaders and actions to talk to the Rails API, so the browser stays on the frontend app origin while CRUD and search still flow through the backend.
 
 ## Production-Like Local Run
 

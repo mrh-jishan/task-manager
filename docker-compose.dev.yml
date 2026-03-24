@@ -55,6 +55,7 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       HOST: 0.0.0.0
       PORT: 5173
+      API_BASE_URL: ${FRONTEND_API_BASE_URL:-http://backend:3000}
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000}
     depends_on:
       - backend
