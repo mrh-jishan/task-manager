@@ -62,7 +62,7 @@ variable "database_username" {
 variable "database_engine_version" {
   type        = string
   description = "RDS PostgreSQL engine version."
-  default     = "16.4"
+  default     = "16.13"
 }
 
 variable "database_instance_class" {

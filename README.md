@@ -31,6 +31,18 @@ Local Docker uses:
 - `backend` for Rails
 - `frontend` for React
 
+## Search Choice
+
+We use PostgreSQL search for tasks instead of Elasticsearch/OpenSearch in the first release.
+
+Why:
+
+- the app already depends on PostgreSQL, so search stays in the same durable data store
+- Postgres full-text search handles keyword and phrase search well
+- `pg_trgm` adds fuzzy matching for typo-tolerant search
+- it avoids running and persisting a separate search cluster in Kubernetes
+- it keeps the stack smaller, cheaper, and easier to operate early on
+
 ## Production-Like Local Run
 
 ```bash

@@ -15,6 +15,7 @@ locals {
   az_names                         = slice(data.aws_availability_zones.available.names, 0, var.az_count)
   common_tags                      = merge(var.tags, { Project = var.name_prefix })
   github_actions_oidc_provider_arn = coalesce(var.github_actions_oidc_provider_arn, one(aws_iam_openid_connect_provider.github_actions[*].arn))
+  cluster_admin_principals         = toset(var.cluster_admin_principal_arns)
 }
 
 resource "aws_vpc" "this" {
@@ -434,4 +435,26 @@ resource "aws_eks_access_policy_association" "github_actions" {
   }
 
   depends_on = [aws_eks_access_entry.github_actions]
+}
+
+resource "aws_eks_access_entry" "cluster_admins" {
+  for_each = local.cluster_admin_principals
+
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = each.value
+  type          = "STANDARD"
+}
+
+resource "aws_eks_access_policy_association" "cluster_admins" {
+  for_each = local.cluster_admin_principals
+
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = each.value
+  policy_arn    = "arn:${data.aws_partition.current.partition}:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  access_scope {
+    type = "cluster"
+  }
+
+  depends_on = [aws_eks_access_entry.cluster_admins]
 }

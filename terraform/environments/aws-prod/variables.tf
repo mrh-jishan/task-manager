@@ -62,7 +62,7 @@ variable "node_capacity_type" {
 
 variable "node_ami_type" {
   type    = string
-  default = "AL2_x86_64"
+  default = "AL2023_x86_64_STANDARD"
 }
 
 variable "node_disk_size" {
@@ -112,7 +112,7 @@ variable "database_username" {
 
 variable "database_engine_version" {
   type    = string
-  default = "16.4"
+  default = "16.13"
 }
 
 variable "database_instance_class" {
@@ -173,6 +173,13 @@ variable "github_environments" {
 variable "github_actions_oidc_provider_arn" {
   type    = string
   default = null
+}
+
+variable "cluster_admin_principal_arns" {
+  type = list(string)
+  default = [
+    "arn:aws:iam::467815362527:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_daae1f324fb7a4c9"
+  ]
 }
 
 variable "tags" {

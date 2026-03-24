@@ -72,7 +72,7 @@ variable "node_capacity_type" {
 variable "node_ami_type" {
   type        = string
   description = "Managed node group AMI type."
-  default     = "AL2_x86_64"
+  default     = "AL2023_x86_64_STANDARD"
 }
 
 variable "node_disk_size" {
@@ -114,6 +114,12 @@ variable "github_actions_oidc_provider_arn" {
   type        = string
   description = "Optional existing GitHub Actions OIDC provider ARN to reuse instead of creating one."
   default     = null
+}
+
+variable "cluster_admin_principal_arns" {
+  type        = list(string)
+  description = "Additional IAM principal ARNs that should receive EKS cluster admin access."
+  default     = []
 }
 
 variable "tags" {
