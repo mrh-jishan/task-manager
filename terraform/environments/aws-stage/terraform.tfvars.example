@@ -2,7 +2,7 @@ aws_region          = "us-east-1"
 name_prefix         = "task-manager-stage"
 github_repository   = "mrh-jishan/task-manager"
 github_environments = ["stage"]
-kubernetes_version  = "1.30"
+kubernetes_version  = "1.34"
 
 vpc_cidr             = "10.10.0.0/16"
 public_subnet_cidrs  = ["10.10.0.0/24", "10.10.1.0/24"]
