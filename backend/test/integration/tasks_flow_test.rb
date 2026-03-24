@@ -126,4 +126,19 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
     assert_equal 1, response.parsed_body["pagination"]["page"]
     assert_equal 100, response.parsed_body["pagination"]["per_page"]
   end
+
+  test "returns validation errors for invalid create input" do
+    post "/api/tasks", params: {
+      task: {
+        title: "   ",
+        description: "x" * (Task::DESCRIPTION_MAX_LENGTH + 1),
+        status: "open",
+        priority: "medium"
+      }
+    }, as: :json
+
+    assert_response :unprocessable_entity
+    assert_includes response.parsed_body["errors"], "Title can't be blank"
+    assert_includes response.parsed_body["errors"], "Description is too long (maximum is #{Task::DESCRIPTION_MAX_LENGTH} characters)"
+  end
 end

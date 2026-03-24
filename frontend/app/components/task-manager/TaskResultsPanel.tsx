@@ -1,7 +1,12 @@
 import { Form, Link } from "react-router";
 
 import type { Task } from "../../lib/tasks";
-import { TASK_PRIORITIES, TASK_STATUSES } from "../../lib/tasks";
+import {
+  TASK_DESCRIPTION_MAX_LENGTH,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+  TASK_TITLE_MAX_LENGTH,
+} from "../../lib/tasks";
 
 import { badgeClass, buildPageHref, formatDate, taskFormValue } from "./task-ui";
 import type { TaskActionData, TaskFilters } from "./types";
@@ -142,6 +147,8 @@ function TaskResultCard({ task, actionData }: { task: Task; actionData?: TaskAct
               <span className="text-sm font-medium text-slate-700">Title</span>
               <input
                 name="title"
+                required
+                maxLength={TASK_TITLE_MAX_LENGTH}
                 defaultValue={taskFormValue(actionData, task, "title")}
                 className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-cyan-500 focus:bg-white"
               />
@@ -152,6 +159,7 @@ function TaskResultCard({ task, actionData }: { task: Task; actionData?: TaskAct
               <textarea
                 name="description"
                 rows={3}
+                maxLength={TASK_DESCRIPTION_MAX_LENGTH}
                 defaultValue={taskFormValue(actionData, task, "description")}
                 className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-cyan-500 focus:bg-white"
               />

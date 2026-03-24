@@ -2,9 +2,13 @@ class Task < ApplicationRecord
   STATUSES = %w[open in_progress completed archived].freeze
   PRIORITIES = %w[low medium high urgent].freeze
   MIN_SEARCH_SIMILARITY = 0.2
+  TITLE_MAX_LENGTH = 255
+  DESCRIPTION_MAX_LENGTH = 10_000
 
-  validates :title, presence: true, length: { maximum: 255 }
-  validates :description, length: { maximum: 10_000 }
+  before_validation :normalize_fields
+
+  validates :title, presence: true, length: { maximum: TITLE_MAX_LENGTH }
+  validates :description, length: { maximum: DESCRIPTION_MAX_LENGTH }
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :priority, presence: true, inclusion: { in: PRIORITIES }
 
@@ -47,5 +51,12 @@ class Task < ApplicationRecord
         min_similarity: MIN_SEARCH_SIMILARITY
       )
       .order(Arel.sql("search_rank DESC, search_similarity DESC, updated_at DESC"))
+  end
+
+  private
+
+  def normalize_fields
+    self.title = title.to_s.strip
+    self.description = description.to_s.strip.presence
   end
 end

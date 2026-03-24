@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { TASK_TITLE_MAX_LENGTH } from "../lib/tasks";
 import { action, loader } from "./home";
 
 function jsonResponse(body: unknown, status = 200) {
@@ -139,6 +140,37 @@ describe("home route data integration", () => {
       intent: "update",
       taskId: "7",
       errors: ["Title is required."],
+    });
+  });
+
+  it("validates create input before calling the backend" , async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const formData = new FormData();
+    formData.set("intent", "create");
+    formData.set("title", "x".repeat(TASK_TITLE_MAX_LENGTH + 1));
+    formData.set("description", "");
+    formData.set("status", "open");
+    formData.set("priority", "medium");
+    formData.set("due_at", "");
+
+    const result = await action(
+      buildRouteArgs(
+        new Request("http://app.local/", {
+          method: "POST",
+          body: formData,
+        }),
+      ),
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      intent: "create",
+      errors: [`Title must be ${TASK_TITLE_MAX_LENGTH} characters or fewer.`],
+      values: {
+        title: "x".repeat(TASK_TITLE_MAX_LENGTH + 1),
+      },
     });
   });
 });

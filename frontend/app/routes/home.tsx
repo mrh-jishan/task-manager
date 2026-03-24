@@ -5,7 +5,10 @@ import { TaskResultsPanel } from "../components/task-manager/TaskResultsPanel";
 import { TaskSearchPanel } from "../components/task-manager/TaskSearchPanel";
 import { TaskSidebar } from "../components/task-manager/TaskSidebar";
 import type { TaskActionData } from "../components/task-manager/types";
-import { TASK_PRIORITIES, TASK_STATUSES, type TaskMutationInput } from "../lib/tasks";
+import {
+  type TaskMutationInput,
+  validateTaskInput,
+} from "../lib/tasks";
 import type { Route } from "./+types/home";
 
 const EMPTY_TASK_FORM: TaskMutationInput = {
@@ -26,27 +29,11 @@ function normalizeTaskFormData(formData: FormData): TaskMutationInput {
   };
 }
 
-function validateTask(values: TaskMutationInput) {
-  const errors: string[] = [];
-
-  if (!values.title) {
-    errors.push("Title is required.");
-  }
-
-  if (!TASK_STATUSES.includes(values.status as (typeof TASK_STATUSES)[number])) {
-    errors.push("Status is invalid.");
-  }
-
-  if (!TASK_PRIORITIES.includes(values.priority as (typeof TASK_PRIORITIES)[number])) {
-    errors.push("Priority is invalid.");
-  }
-
-  return errors;
-}
-
 function buildTaskPayload(values: TaskMutationInput) {
   return {
     ...values,
+    title: values.title.trim(),
+    description: values.description.trim(),
     due_at: values.due_at || "",
   };
 }
@@ -105,7 +92,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (intent === "create" || intent === "update") {
-    const errors = validateTask(values);
+    const errors = validateTaskInput(values);
     if (errors.length > 0) {
       return {
         intent,
