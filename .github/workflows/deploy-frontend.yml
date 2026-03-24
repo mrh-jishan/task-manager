@@ -106,6 +106,7 @@ jobs:
             -f ./helm/frontend/values.aws.yaml \
             --set image.repository="${REGISTRY}/${FRONTEND_ECR_REPOSITORY}" \
             --set image.tag="${GITHUB_SHA}" \
+            --timeout 10m \
             --wait \
             --rollback-on-failure
 

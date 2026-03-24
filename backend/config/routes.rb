@@ -7,6 +7,8 @@ Rails.application.routes.draw do
 
   resources :tasks
 
+  get "api" => redirect("/api/tasks")
+
   scope :api do
     get "up" => "rails/health#show"
     resources :tasks

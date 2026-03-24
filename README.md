@@ -148,7 +148,7 @@ After deploy, get the public app URL with:
 ./scripts/print_public_urls.sh prod
 ```
 
-Use the frontend URL for the app and the backend URL for direct API access. The frontend is served at `/` and the backend API is served at `/api`.
+Use the frontend URL for the app and the backend URL for direct API access. The frontend is served at `/` and the backend API is served at `/api`. The backend also redirects bare `/api` to `/api/tasks` so the public API URL is not a dead end.
 
 The backend public URL is for direct API access and for local frontend-to-remote-backend testing. The deployed frontend in `stage` and `prod` should not hardcode that hostname. It uses same-origin `/api`, which keeps working even if AWS replaces the ALB hostname.
 

@@ -133,6 +133,7 @@ jobs:
             --set secretsStore.secretArn="${DATABASE_SECRET_ID}" \
             --set image.repository="${REGISTRY}/${BACKEND_ECR_REPOSITORY}" \
             --set image.tag="${GITHUB_SHA}" \
+            --timeout 10m \
             --wait \
             --rollback-on-failure
 
