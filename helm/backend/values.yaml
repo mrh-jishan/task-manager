@@ -37,6 +37,7 @@ secretsStore:
   enabled: false
   region: ""
   secretArn: ""
+  usePodIdentity: true
   mountPath: /mnt/secrets-store
   secretProviderClassName: ""
   jmesPath:
