@@ -131,4 +131,4 @@ jobs:
             --set image.repository="${REGISTRY}/${BACKEND_ECR_REPOSITORY}" \
             --set image.tag="${GITHUB_SHA}" \
             --wait \
-            --atomic
+            --rollback-on-failure

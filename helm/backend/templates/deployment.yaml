@@ -21,6 +21,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
+      {{- $root := . }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -52,7 +53,7 @@ spec:
             - name: {{ $key }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "task-manager-backend.secretName" . }}
+                  name: {{ include "task-manager-backend.secretName" $root }}
                   key: {{ $value }}
             {{- end }}
             {{- end }}
