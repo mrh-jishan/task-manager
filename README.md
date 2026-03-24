@@ -2,6 +2,10 @@
 
 Small full-stack task manager built with a Rails API, React Router v7 frontend, PostgreSQL, and Docker.
 
+## Screenshot
+
+![Task Manager demo](./demo.png)
+
 ## Features
 
 - Create, view, update, and delete tasks
