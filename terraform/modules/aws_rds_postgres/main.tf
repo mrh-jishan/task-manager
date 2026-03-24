@@ -14,12 +14,16 @@ locals {
 }
 
 resource "aws_db_subnet_group" "this" {
-  name       = "${var.name_prefix}-db-subnet-group"
-  subnet_ids = var.private_subnet_ids
+  name_prefix = "${var.name_prefix}-db-subnet-group-"
+  subnet_ids  = var.private_subnet_ids
 
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-db-subnet-group"
   })
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_security_group" "database" {

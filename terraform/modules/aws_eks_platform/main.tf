@@ -148,7 +148,7 @@ resource "aws_eks_cluster" "this" {
   name                          = local.cluster_name
   role_arn                      = aws_iam_role.eks_cluster.arn
   version                       = var.kubernetes_version
-  bootstrap_self_managed_addons = false
+  bootstrap_self_managed_addons = true
 
   access_config {
     authentication_mode                         = "API_AND_CONFIG_MAP"
