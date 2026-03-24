@@ -3,13 +3,13 @@ services:
     image: postgres:16-alpine
     container_name: task-manager-postgres-prod
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-task_manager_production}
-      POSTGRES_USER: ${POSTGRES_USER:-task_manager}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-task_manager}
+      POSTGRES_DB: ${PROD_POSTGRES_DB:-task_manager_production}
+      POSTGRES_USER: ${PROD_POSTGRES_USER:-task_manager}
+      POSTGRES_PASSWORD: ${PROD_POSTGRES_PASSWORD:-task_manager}
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-task_manager} -d ${POSTGRES_DB:-task_manager_production}"]
+      test: ["CMD-SHELL", "pg_isready -U ${PROD_POSTGRES_USER:-task_manager} -d ${PROD_POSTGRES_DB:-task_manager_production}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,11 +23,11 @@ services:
     environment:
       RAILS_ENV: production
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
-      BACKEND_DATABASE_HOST: ${BACKEND_DATABASE_HOST:-postgres}
-      BACKEND_DATABASE_PORT: ${BACKEND_DATABASE_PORT:-5432}
-      BACKEND_DATABASE_NAME: ${BACKEND_DATABASE_NAME:-task_manager_production}
-      BACKEND_DATABASE_USERNAME: ${BACKEND_DATABASE_USERNAME:-task_manager}
-      BACKEND_DATABASE_PASSWORD: ${BACKEND_DATABASE_PASSWORD:-task_manager}
+      BACKEND_DATABASE_HOST: ${PROD_BACKEND_DATABASE_HOST:-postgres}
+      BACKEND_DATABASE_PORT: ${PROD_BACKEND_DATABASE_PORT:-5432}
+      BACKEND_DATABASE_NAME: ${PROD_BACKEND_DATABASE_NAME:-task_manager_production}
+      BACKEND_DATABASE_USERNAME: ${PROD_BACKEND_DATABASE_USERNAME:-task_manager}
+      BACKEND_DATABASE_PASSWORD: ${PROD_BACKEND_DATABASE_PASSWORD:-task_manager}
     ports:
       - "${PROD_BACKEND_PORT:-3000}:80"
     volumes:
@@ -46,6 +46,7 @@ services:
       HOST: 0.0.0.0
       NODE_ENV: production
       PORT: 3000
+      API_BASE_URL: ${PROD_FRONTEND_API_BASE_URL:-http://backend}
     depends_on:
       - backend
     ports:
