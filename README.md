@@ -25,6 +25,13 @@ docker compose --env-file .env -f docker-compose.dev.yml up --build
 - backend health: `http://localhost:3000/up`
 - postgres: `localhost:5432`
 
+Frontend integration by environment:
+
+- local non-Docker: `frontend/.env` should point `API_BASE_URL` to `http://localhost:3000`
+- local Docker dev: root `.env` uses `FRONTEND_API_BASE_URL=http://backend:3000`
+- local Docker prod: root `.env` uses `PROD_FRONTEND_API_BASE_URL=http://backend`
+- stage/prod Kubernetes: no frontend API host env is required; the frontend uses same-origin `/api` and the ALB routes that path to the backend
+
 Run backend tests:
 
 ```bash
@@ -38,6 +45,7 @@ Run frontend checks:
 cd frontend
 npm test
 npm run typecheck
+npm run build
 ```
 
 Local Docker uses:
