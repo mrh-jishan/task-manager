@@ -126,3 +126,25 @@ kubectl get svc -n prod
 ```
 
 Use the external hostname of the frontend service release.
+
+## Local kubectl Access
+
+Import the prod cluster into your local kubeconfig:
+
+```bash
+aws eks update-kubeconfig --name task-manager-prod-eks --region us-east-1 --alias task-manager-prod-eks
+kubectl config use-context task-manager-prod-eks
+```
+
+Quick checks:
+
+```bash
+kubectl get namespaces
+kubectl get nodes -o wide
+kubectl -n prod get deploy,pods,svc,sa,secretsproviderclass
+```
+
+Backend release details:
+
+- namespace: `prod`
+- Helm release: `task-manager-backend-prod`
