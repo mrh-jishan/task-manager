@@ -1,8 +1,5 @@
 replicaCount: 1
 
-env:
-  API_BASE_URL: http://task-manager-backend-stage.stage.svc.cluster.local
-
 resources:
   requests:
     cpu: 100m
