@@ -84,9 +84,9 @@ docker compose --env-file .env -f docker-compose.prod.yml up --build -d
 
 - `backend-ci.yml` runs RuboCop on Ruby 4.0.0 and Rails tests against a Postgres service container for backend changes
 - `terraform-aws.yml` applies infra
+- `deploy-cluster-addons.yml` installs shared cluster addons like AWS Load Balancer Controller
 - `deploy-backend.yml` deploys the backend Helm release only
 - `deploy-frontend.yml` deploys the frontend Helm release only
-- both deploy workflows install or upgrade the AWS Load Balancer Controller before releasing app changes
 - `main` pushes deploy to `production`
 - manual workflow dispatch can deploy `stage` or `production`
 - Terraform uses S3 remote state with native S3 lockfiles
@@ -153,6 +153,8 @@ Use the frontend URL for the app and the backend URL for direct API access. The 
 The backend public URL is for direct API access and for local frontend-to-remote-backend testing. The deployed frontend in `stage` and `prod` should not hardcode that hostname. It uses same-origin `/api`, which keeps working even if AWS replaces the ALB hostname.
 
 For local frontend testing against a remote environment, set `API_BASE_URL` in `frontend/.env` to the current backend URL printed by the script above.
+
+Run `deploy-cluster-addons.yml` after a fresh cluster build or whenever the AWS Load Balancer Controller changes. Backend and frontend deploy workflows assume that controller is already healthy.
 
 ## Local kubectl Access
 

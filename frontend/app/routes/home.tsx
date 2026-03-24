@@ -234,48 +234,128 @@ export default function Home() {
   const actionData = useActionData<typeof action>() as TaskActionData | undefined;
   const navigation = useNavigation();
   const isSubmitting = navigation.state === "submitting";
+  const hasActiveFilters = Boolean(filters.q || filters.status);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_28%),linear-gradient(180deg,_#fffdf7_0%,_#f5efe3_100%)] text-stone-900">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
-        <section className="grid gap-6 rounded-[2rem] border border-stone-200/80 bg-white/90 p-6 shadow-[0_24px_80px_rgba(120,53,15,0.12)] lg:grid-cols-[1.3fr_0.7fr]">
-          <div className="space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.28em] text-amber-700">
-              Task Manager
-            </p>
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl">
-              Create, search, update, and close tasks from one React Router screen.
-            </h1>
-            <p className="max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
-              This UI is backed by the Rails API and PostgreSQL search. Search is typo-tolerant,
-              results are paginated, and every change flows through React Router loaders and actions.
-            </p>
-          </div>
-
-          <div className="grid gap-3 rounded-[1.5rem] bg-stone-950 p-5 text-stone-50">
-            <div>
-              <p className="text-sm uppercase tracking-[0.24em] text-stone-400">Visible Tasks</p>
-              <p className="mt-2 text-4xl font-semibold">{pagination.total_count}</p>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(245,158,11,0.16),_transparent_24%),linear-gradient(180deg,_#fffdf7_0%,_#f3ede2_100%)] text-stone-900">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <section className="rounded-[1.8rem] border border-stone-200/80 bg-white/95 p-5 shadow-[0_18px_60px_rgba(120,53,15,0.12)]">
+          <div className="grid gap-5 xl:grid-cols-[1fr_360px] xl:items-end">
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-700">
+                Task Manager
+              </p>
+              <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl">
+                Search, create, update, and close tasks from one compact workspace.
+              </h1>
+              <p className="max-w-3xl text-sm leading-6 text-stone-600 sm:text-base">
+                Open-text search is always visible and goes straight to the Rails API backed by PostgreSQL full-text and trigram search.
+              </p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-stone-900 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-stone-400">Page</p>
-                <p className="mt-2 text-2xl font-semibold">{pagination.page}</p>
+
+            <div className="grid grid-cols-3 gap-3 rounded-[1.4rem] bg-stone-950 p-4 text-stone-50">
+              <div className="rounded-2xl bg-stone-900 p-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400">Visible</p>
+                <p className="mt-1 text-2xl font-semibold">{pagination.total_count}</p>
               </div>
-              <div className="rounded-2xl bg-stone-900 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-stone-400">Per Page</p>
-                <p className="mt-2 text-2xl font-semibold">{pagination.per_page}</p>
+              <div className="rounded-2xl bg-stone-900 p-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400">Page</p>
+                <p className="mt-1 text-2xl font-semibold">{pagination.page}</p>
+              </div>
+              <div className="rounded-2xl bg-stone-900 p-3">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-stone-400">Per Page</p>
+                <p className="mt-1 text-2xl font-semibold">{pagination.per_page}</p>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <section className="rounded-[2rem] border border-stone-200/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(120,53,15,0.08)]">
-            <div className="mb-5">
-              <h2 className="text-2xl font-semibold text-stone-950">Create Task</h2>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                Add a task, note, or ticket. The backend validates and stores everything in PostgreSQL.
+        <section className="rounded-[1.8rem] border border-stone-200/70 bg-stone-950 p-4 text-stone-50 shadow-[0_20px_60px_rgba(28,25,23,0.18)]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-300">
+                Search
+              </p>
+              <h2 className="text-2xl font-semibold text-white">Find tasks with open-text search</h2>
+              <p className="max-w-3xl text-sm leading-6 text-stone-300">
+                Search title and description with keywords, phrases, or rough spelling. This is wired directly to the backend `q` parameter.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.16em] text-stone-400">
+              <span className="rounded-full border border-stone-700 px-3 py-1">Typos</span>
+              <span className="rounded-full border border-stone-700 px-3 py-1">Phrases</span>
+              <span className="rounded-full border border-stone-700 px-3 py-1">Status filter</span>
+            </div>
+          </div>
+
+          <Form method="get" className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.35fr)_220px_auto_auto]">
+            <label className="grid gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+                Search text
+              </span>
+              <input
+                type="search"
+                name="q"
+                defaultValue={filters.q}
+                placeholder="Search tasks, notes, tickets, customer issues, release work..."
+                className="rounded-[1.2rem] border border-stone-700 bg-stone-900 px-4 py-3 text-sm text-white outline-none transition placeholder:text-stone-500 focus:border-amber-400 focus:bg-stone-950"
+              />
+            </label>
+
+            <label className="grid gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-400">
+                Status
+              </span>
+              <select
+                name="status"
+                defaultValue={filters.status}
+                className="rounded-[1.2rem] border border-stone-700 bg-stone-900 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-400 focus:bg-stone-950"
+              >
+                <option value="">All statuses</option>
+                {TASK_STATUSES.map((status) => (
+                  <option key={status} value={status}>
+                    {status.replace("_", " ")}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              type="submit"
+              className="rounded-[1.2rem] bg-amber-400 px-5 py-3 text-sm font-semibold text-stone-950 transition hover:bg-amber-300 lg:self-end"
+            >
+              Search
+            </button>
+
+            <Link
+              to="/"
+              className={`rounded-[1.2rem] px-5 py-3 text-sm font-semibold transition lg:self-end ${
+                hasActiveFilters
+                  ? "border border-stone-700 bg-stone-900 text-white hover:border-stone-500"
+                  : "pointer-events-none border border-stone-800 bg-stone-900/50 text-stone-500"
+              }`}
+            >
+              Clear
+            </Link>
+          </Form>
+
+          <div className="mt-3 flex flex-wrap gap-2 text-sm text-stone-300">
+            <span className="rounded-full bg-stone-900 px-3 py-1">
+              Query: {filters.q ? `"${filters.q}"` : "none"}
+            </span>
+            <span className="rounded-full bg-stone-900 px-3 py-1">
+              Status: {filters.status || "all"}
+            </span>
+          </div>
+        </section>
+
+        <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+          <section className="rounded-[1.8rem] border border-stone-200/80 bg-white/92 p-5 shadow-[0_18px_60px_rgba(120,53,15,0.08)]">
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-stone-950">Create Task</h2>
+              <p className="mt-1 text-sm leading-6 text-stone-600">
+                Add a task, note, or ticket directly into the backend.
               </p>
             </div>
 
@@ -302,7 +382,7 @@ export default function Home() {
                 <span className="text-sm font-medium text-stone-700">Description</span>
                 <textarea
                   name="description"
-                  rows={4}
+                  rows={3}
                   defaultValue={actionData?.intent === "create" ? actionData.values.description : ""}
                   placeholder="Capture context, next steps, and ownership."
                   className="rounded-2xl border border-stone-300 bg-stone-50 px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:bg-white"
@@ -361,42 +441,17 @@ export default function Home() {
             </Form>
           </section>
 
-          <section className="rounded-[2rem] border border-stone-200/80 bg-white/90 p-6 shadow-[0_18px_60px_rgba(120,53,15,0.08)]">
-            <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <section className="rounded-[1.8rem] border border-stone-200/80 bg-white/92 p-5 shadow-[0_18px_60px_rgba(120,53,15,0.08)]">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-2xl font-semibold text-stone-950">Search & Manage</h2>
-                <p className="mt-2 text-sm leading-6 text-stone-600">
-                  Search by keywords, phrases, or typos. Results come from PostgreSQL full-text and trigram search.
+                <h2 className="text-xl font-semibold text-stone-950">Results</h2>
+                <p className="mt-1 text-sm leading-6 text-stone-600">
+                  Compact result cards with inline editing and delete actions.
                 </p>
               </div>
-
-              <Form method="get" className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px_auto]">
-                <input
-                  type="search"
-                  name="q"
-                  defaultValue={filters.q}
-                  placeholder="Search tasks, notes, or tickets"
-                  className="rounded-full border border-stone-300 bg-stone-50 px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:bg-white"
-                />
-                <select
-                  name="status"
-                  defaultValue={filters.status}
-                  className="rounded-full border border-stone-300 bg-stone-50 px-4 py-3 text-sm outline-none transition focus:border-amber-500 focus:bg-white"
-                >
-                  <option value="">All statuses</option>
-                  {TASK_STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {status.replace("_", " ")}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  className="rounded-full bg-amber-500 px-5 py-3 text-sm font-semibold text-stone-950 transition hover:bg-amber-400"
-                >
-                  Search
-                </button>
-              </Form>
+              <p className="text-sm font-medium text-stone-500">
+                {pagination.total_count} matching {pagination.total_count === 1 ? "item" : "items"}
+              </p>
             </div>
 
             <div className="space-y-4">
@@ -411,12 +466,12 @@ export default function Home() {
                 tasks.map((task) => (
                   <article
                     key={task.id}
-                    className="rounded-[1.6rem] border border-stone-200 bg-stone-50/70 p-5 shadow-[0_10px_32px_rgba(28,25,23,0.06)]"
+                    className="rounded-[1.5rem] border border-stone-200 bg-stone-50/70 p-4 shadow-[0_10px_32px_rgba(28,25,23,0.06)]"
                   >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div className="space-y-3">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-xl font-semibold text-stone-950">{task.title}</h3>
+                          <h3 className="text-lg font-semibold text-stone-950">{task.title}</h3>
                           <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${badgeClass(task.status)}`}>
                             {task.status.replace("_", " ")}
                           </span>
@@ -448,7 +503,7 @@ export default function Home() {
                     </div>
 
                     <details
-                      className="mt-5 rounded-[1.4rem] border border-stone-200 bg-white"
+                      className="mt-4 rounded-[1.4rem] border border-stone-200 bg-white"
                       open={actionData?.intent === "update" && actionData.taskId === String(task.id)}
                     >
                       <summary className="cursor-pointer list-none px-5 py-4 text-sm font-semibold text-stone-900">
