@@ -33,6 +33,8 @@ fi
 
 # If running the rails server then create or migrate existing database
 if [ "${1:-}" = "./bin/rails" ] && [ "${2:-}" = "server" ]; then
+  mkdir -p tmp/pids
+  rm -f tmp/pids/server.pid
   ./bin/rails db:prepare
 fi
 
