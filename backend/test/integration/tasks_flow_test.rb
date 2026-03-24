@@ -40,6 +40,24 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
     assert_equal 0, Task.count
   end
 
+  test "serves the task API under /api as well" do
+    Task.create!(
+      title: "Customer ticket",
+      description: "Investigate missing export",
+      status: "open",
+      priority: "high"
+    )
+
+    get "/api/tasks", params: { q: "export" }
+
+    assert_response :success
+    assert_equal 1, response.parsed_body["data"].length
+    assert_equal "Customer ticket", response.parsed_body["data"].first["title"]
+
+    get "/api/up"
+    assert_response :success
+  end
+
   test "searches tasks with full text and fuzzy matching" do
     Task.create!(
       title: "Investigate payment failure",

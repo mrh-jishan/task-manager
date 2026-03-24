@@ -61,3 +61,7 @@ output "database_secret_name" {
 output "backend_pod_identity_role_arn" {
   value = module.database.backend_pod_identity_role_arn
 }
+
+output "aws_load_balancer_controller_role_arn" {
+  value = module.platform.aws_load_balancer_controller_role_arn
+}

@@ -3,6 +3,3 @@ service:
 
 persistence:
   enabled: true
-
-ingress:
-  enabled: false

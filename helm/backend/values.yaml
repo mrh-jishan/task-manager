@@ -61,8 +61,8 @@ ingress:
   enabled: false
   className: ""
   annotations: {}
-  host: api.task-manager.local
-  path: /
+  host: ""
+  path: /api
   pathType: Prefix
   tls: []
 
