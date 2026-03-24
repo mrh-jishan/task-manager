@@ -54,26 +54,58 @@ class TasksFlowTest < ActionDispatch::IntegrationTest
       priority: "medium"
     )
 
-    get tasks_path, params: { q: "invoice checkout" }, as: :json
+    get tasks_path, params: { q: "invoice checkout" }
 
     assert_response :success
-    assert_equal 1, response.parsed_body.length
-    assert_equal "Investigate payment failure", response.parsed_body.first["title"]
+    assert_equal 1, response.parsed_body["data"].length
+    assert_equal "Investigate payment failure", response.parsed_body["data"].first["title"]
+    assert_equal 1, response.parsed_body["pagination"]["total_count"]
 
-    get tasks_path, params: { q: "chekout" }, as: :json
+    get tasks_path, params: { q: "chekout" }
 
     assert_response :success
-    assert_equal "Investigate payment failure", response.parsed_body.first["title"]
+    assert_equal "Investigate payment failure", response.parsed_body["data"].first["title"]
   end
 
   test "filters tasks by status" do
     Task.create!(title: "Todo item", status: "open", priority: "low")
     Task.create!(title: "Done item", status: "completed", priority: "medium")
 
-    get tasks_path, params: { status: "completed" }, as: :json
+    get tasks_path, params: { status: "completed" }
 
     assert_response :success
-    assert_equal 1, response.parsed_body.length
-    assert_equal "completed", response.parsed_body.first["status"]
+    assert_equal 1, response.parsed_body["data"].length
+    assert_equal "completed", response.parsed_body["data"].first["status"]
+  end
+
+  test "paginates tasks" do
+    3.times do |index|
+      Task.create!(
+        title: "Task #{index}",
+        description: "Task number #{index}",
+        status: "open",
+        priority: "medium",
+        updated_at: Time.current + index.minutes
+      )
+    end
+
+    get tasks_path, params: { page: 2, per_page: 2 }
+
+    assert_response :success
+    assert_equal 1, response.parsed_body["data"].length
+    assert_equal 2, response.parsed_body["pagination"]["page"]
+    assert_equal 2, response.parsed_body["pagination"]["per_page"]
+    assert_equal 3, response.parsed_body["pagination"]["total_count"]
+    assert_equal 2, response.parsed_body["pagination"]["total_pages"]
+  end
+
+  test "caps per_page and normalizes invalid page values" do
+    Task.create!(title: "Task", status: "open", priority: "low")
+
+    get tasks_path, params: { page: 0, per_page: 999 }
+
+    assert_response :success
+    assert_equal 1, response.parsed_body["pagination"]["page"]
+    assert_equal 100, response.parsed_body["pagination"]["per_page"]
   end
 end

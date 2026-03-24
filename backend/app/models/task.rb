@@ -1,6 +1,7 @@
 class Task < ApplicationRecord
   STATUSES = %w[open in_progress completed archived].freeze
   PRIORITIES = %w[low medium high urgent].freeze
+  MIN_SEARCH_SIMILARITY = 0.2
 
   validates :title, presence: true, length: { maximum: 255 }
   validates :description, length: { maximum: 10_000 }
@@ -25,7 +26,9 @@ class Task < ApplicationRecord
       ) AS search_rank,
       GREATEST(
         similarity(title, #{quoted_query}),
-        similarity(coalesce(description, ''), #{quoted_query})
+        similarity(coalesce(description, ''), #{quoted_query}),
+        word_similarity(#{quoted_query}, title),
+        word_similarity(#{quoted_query}, coalesce(description, ''))
       ) AS search_similarity
     SQL
       .where(
@@ -34,11 +37,14 @@ class Task < ApplicationRecord
             @@ websearch_to_tsquery('simple', :query)
           OR title % :query
           OR coalesce(description, '') % :query
+          OR word_similarity(:query, title) >= :min_similarity
+          OR word_similarity(:query, coalesce(description, '')) >= :min_similarity
           OR title ILIKE :pattern
           OR coalesce(description, '') ILIKE :pattern
         SQL
         query: normalized_query,
-        pattern: pattern
+        pattern: pattern,
+        min_similarity: MIN_SEARCH_SIMILARITY
       )
       .order(Arel.sql("search_rank DESC, search_similarity DESC, updated_at DESC"))
   end

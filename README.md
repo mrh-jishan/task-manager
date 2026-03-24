@@ -43,6 +43,10 @@ Why:
 - it avoids running and persisting a separate search cluster in Kubernetes
 - it keeps the stack smaller, cheaper, and easier to operate early on
 
+## Tasks API
+
+`GET /tasks` supports `q`, `status`, `page`, and `per_page`. The list response returns `{ data: [...], pagination: { page, per_page, total_count, total_pages } }`.
+
 ## Production-Like Local Run
 
 ```bash
@@ -51,6 +55,7 @@ docker compose --env-file .env -f docker-compose.prod.yml up --build -d
 
 ## Release
 
+- `backend-ci.yml` runs RuboCop and Rails tests against Dockerized Postgres for backend changes
 - `terraform-aws.yml` applies infra
 - `deploy-backend.yml` deploys the backend Helm release only
 - `deploy-frontend.yml` deploys the frontend Helm release only

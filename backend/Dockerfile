@@ -23,6 +23,8 @@ RUN apt-get update -qq && \
 ENV BUNDLE_PATH="/usr/local/bundle" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
+RUN gem install bundler:4.0.3
+
 # Shared gem install stage
 FROM base AS gems
 

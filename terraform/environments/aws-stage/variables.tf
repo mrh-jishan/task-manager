@@ -31,8 +31,8 @@ variable "private_subnet_cidrs" {
 
 variable "kubernetes_version" {
   type        = string
-  description = "EKS Kubernetes version, for example 1.34."
-  default     = "1.34"
+  description = "EKS Kubernetes version, for example 1.35."
+  default     = "1.35"
 }
 
 variable "cluster_endpoint_public_access" {

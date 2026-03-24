@@ -1,0 +1,51 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "docker-compose.dev.yml"
+      - ".github/workflows/backend-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "docker-compose.dev.yml"
+      - ".github/workflows/backend-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run RuboCop
+        run: |
+          docker compose --env-file .env.example -f docker-compose.dev.yml run --rm --no-deps backend bundle exec rubocop
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start Postgres
+        run: |
+          docker compose --env-file .env.example -f docker-compose.dev.yml up -d postgres
+
+      - name: Run Rails Tests
+        run: |
+          docker compose --env-file .env.example -f docker-compose.dev.yml run --rm --no-deps -e RAILS_ENV=test backend bundle exec rails db:prepare test
+
+      - name: Stop Docker Services
+        if: always()
+        run: |
+          docker compose --env-file .env.example -f docker-compose.dev.yml down -v
